@@ -40,7 +40,7 @@ def compute_average_distance(reviews):
 
     tokenized_sents_df = sentences.map(Row('text')).toDF()
     # learn a mapping from sentences to Vectors
-    word2vec = Word2Vec(vectorSize=10, minCount=0, inputCol='text', outputCol='vector')
+    word2vec = Word2Vec(vectorSize=100, minCount=0, inputCol='text', outputCol='vector')
     word2vec_model = word2vec.fit(tokenized_sents_df)
     sent_vectors = word2vec_model.transform(tokenized_sents_df)
 
@@ -81,20 +81,15 @@ if __name__ == '__main__':
     rdd = df.rdd
 
     # choose a product
-    logging.info('Selecting products with product_id "B00006J6VG"')
-    selected_rdd = rdd.filter(lambda x: 'B00006J6VG' == x['product_id'])
-    # differentiate positive and negative reviews
-    logging.info('Selecting positive products')
+    selected_rdd = rdd.filter(lambda x: 'B00006J6VG' == x['product_id']).sample(withReplacement=False, fraction=0.1)
+    # differentiate positive and negative reviews, then cache
     positive_rdd = selected_rdd.filter(lambda x: x['star_rating'] >= 4).filter(
-        lambda x: isinstance(x['review_body'], str))
-    logging.info('Selecting negative products')
+        lambda x: isinstance(x['review_body'], str)).cache()
     negative_rdd = selected_rdd.filter(lambda x: x['star_rating'] <= 2).filter(
-        lambda x: isinstance(x['review_body'], str))
+        lambda x: isinstance(x['review_body'], str)).cache()
 
     # calculate average distance for both positive and negative class
-    logging.info('Computing average cosine distance for positive products')
     pos_avg_distance = compute_average_distance(positive_rdd)
-    logging.info('Computing average cosine distance for negative products')
     neg_avg_distance = compute_average_distance(negative_rdd)
 
     save_result(pos_avg_distance)

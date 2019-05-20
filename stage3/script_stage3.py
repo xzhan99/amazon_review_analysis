@@ -1,13 +1,11 @@
 import argparse
-import logging
 from operator import add
+from pprint import pprint
 
 import tensorflow as tf
 import tensorflow_hub as hub
 from nltk.tokenize import sent_tokenize
 from pyspark.sql import SparkSession
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def review_embed(review_partition):
@@ -48,10 +46,9 @@ def calculate_distance(pair):
         return pair[0][0], distance
 
 
-def save_result(result):
-    logging.warning('=' * 50)
-    logging.warning(str(float(result)))
-    logging.warning('=' * 50)
+def print_result(name, result):
+    print('=' * 50 + name + '=' * 50)
+    pprint(result)
 
 
 if __name__ == '__main__':
@@ -76,23 +73,25 @@ if __name__ == '__main__':
     # convert to rdd
     rdd = df.rdd
     # choose a product
-    selected_rdd = rdd.filter(lambda x: 'B00006J6VG' == x['product_id'])
+    selected_rdd = rdd.filter(lambda x: 'B00006J6VG' == x['product_id']).sample(withReplacement=False,
+                                                                                fraction=0.1).cache()
 
-    logging.info('Computing average cosine distance for positive products')
-    positive_rdd = selected_rdd.filter(lambda x: x['star_rating'] >= 4)
-    positive_embedded = positive_rdd.mapPartitions(review_embed)
+    # Computing average cosine distance for positive products
+    positive_rdd = selected_rdd.filter(lambda x: x['star_rating'] >= 4).cache()
+    positive_embedded = positive_rdd.mapPartitions(review_embed).cache()
     positive_distance = positive_embedded.cartesian(positive_embedded).map(calculate_distance)
     added_positive = positive_distance.reduceByKey(add)
     added_positive_number = added_positive.count()
     average_positive = added_positive.values().sum() / (added_positive_number * (added_positive_number - 1))
 
-    logging.info('Computing average cosine distance for negative products')
-    negative_rdd = selected_rdd.filter(lambda x: x['star_rating'] <= 2)
-    negative_embedding = negative_rdd.mapPartitions(review_embed)
+    # Computing average cosine distance for negative products
+    negative_rdd = selected_rdd.filter(lambda x: x['star_rating'] <= 2).cache()
+    negative_embedding = negative_rdd.mapPartitions(review_embed).cache()
     negative_distance = negative_embedding.cartesian(negative_embedding).map(calculate_distance)
     added_negative = negative_distance.reduceByKey(add)
     added_negative_number = added_negative.count()
     average_negative = added_negative.values().sum() / (added_negative_number * (added_negative_number - 1))
 
-    save_result(average_positive)
-    save_result(average_negative)
+    print_result(average_positive)
+    print_result(average_negative)
+    spark.stop()

@@ -8,5 +8,5 @@ fi
 spark-submit \
     --master local[4] \
     script_stage3.py \
-    --input $1
+    --input $1 \
     --selected_product $2

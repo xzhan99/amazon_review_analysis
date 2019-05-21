@@ -36,6 +36,6 @@ To run stage 3 codes, you should execute the following command:
 To run stage 4 codes, you should execute the following command:
 
     sh run_stage4.sh [input_location]
-Notice, the input and output location is considered as a HDFS path by default. If the input file is on the local file system, the command should be like:
+Notice, the input and output location is considered as a HDFS path by default. If either input or output file is on the local file system, the command should be like:
     
     sh run_stage1.sh file:///home/hadoop/amazon_reviews_us_Music_v1_00.tsv

@@ -36,9 +36,7 @@ def find_median(ids, len_sent):
 
 
 def save_filtered_data(rdd, file_path):
-    def to_csv_line(data):
-        return '\t'.join(str(d) for d in data)
-    rdd.map(to_csv_line).repartition(1).saveAsTextFile(file_path)
+    rdd.toDF().write.csv(file_path)
 
 
 def print_result(name, result):

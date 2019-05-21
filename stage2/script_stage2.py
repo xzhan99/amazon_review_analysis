@@ -5,8 +5,8 @@ import numpy as np
 from nltk.tokenize import sent_tokenize
 from pyspark.sql import SparkSession
 
-MEDIAN_USER = 1
-MEDIAN_PRODUCT = 2
+MEDIAN_USER = 1  # median number of reviews by user
+MEDIAN_PRODUCT = 2  # median number of reviews by product
 
 
 def filter_data(review):

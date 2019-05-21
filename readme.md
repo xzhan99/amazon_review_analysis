@@ -32,10 +32,14 @@ To run stage 2 codes, you should execute the following command:
     sh run_stage2.sh [input_location] [output_location]
 To run stage 3 codes, you should execute the following command:
 
-    sh run_stage3.sh [input_location]
+    sh run_stage3.sh [input_location] [selected_product]
 To run stage 4 codes, you should execute the following command:
 
-    sh run_stage4.sh [input_location]
+    sh run_stage4.sh [input_location] [selected_product]
 Notice, the input and output location is considered as a HDFS path by default. If either input or output file is on the local file system, the command should be like:
     
     sh run_stage1.sh file:///home/hadoop/amazon_reviews_us_Music_v1_00.tsv
+
+More, stage 2,3,4 cannot call any variable from previous stage since our design put each stage separately.
+However, stage 2 needs the median number of reviews by user and median number of reviews by product, both of them are the output of stage 1.
+We create two constant variables representing them in stage 2. Before running stage 2, both of constant variables on line 8,9 should be specified based on stage 1 output.

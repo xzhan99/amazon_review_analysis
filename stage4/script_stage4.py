@@ -11,8 +11,6 @@ from pyspark.sql import Row
 from pyspark.sql import SparkSession
 from scipy.spatial import distance
 
-SELECTED_PRODUCT = 'B00006J6VG'
-
 
 def review_sent_tokenize(review):
     sents = []
@@ -60,9 +58,9 @@ def print_result(name, result):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', help='the input path')
-    parser.add_argument('--output', help='the output path')
+    parser.add_argument('--selected_product', help='the product id')
     args = parser.parse_args()
-    input_path, output_path = args.input, args.output
+    input_path, selected_product = args.input, args.selected_product
 
     # start spark session
     spark = SparkSession \
@@ -82,7 +80,7 @@ if __name__ == '__main__':
     rdd = df.rdd
 
     # choose a product
-    selected_rdd = rdd.filter(lambda x: SELECTED_PRODUCT == x['product_id'])
+    selected_rdd = rdd.filter(lambda x: selected_product == x['product_id'])
     # differentiate positive and negative reviews, then cache
     positive_rdd = selected_rdd.filter(lambda x: x['star_rating'] >= 4).filter(
         lambda x: isinstance(x['review_body'], str)).cache()

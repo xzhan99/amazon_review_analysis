@@ -36,7 +36,6 @@ def review_embed(review_partition):
             else:
                 my_result_out = session.run(my_result, feed_dict={text_input: [sent]})
                 sents.append([review_id, my_result_out])
-
     return sents
 
 
@@ -54,26 +53,28 @@ def print_result(name, result):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', help='the input path')
-    parser.add_argument('--output', help='the output path')
+    parser.add_argument('--selected_product', help='the product id')
     args = parser.parse_args()
-    input_path, output_path = args.input, args.output
+    input_path, selected_product = args.input, args.selected_product
 
     # start spark session
     spark = SparkSession \
         .builder \
-        .appName("Stage 3") \
+        .appName('stage 3') \
         .getOrCreate()
 
     # read file
     df = spark.read.option("sep", "\t").csv(input_path, header=False, inferSchema="true")
-    df = df.withColumnRenamed('_c0', 'customer_id') \
-        .withColumnRenamed('_c1', 'product_id') \
-        .withColumnRenamed('_c2', 'star_rating') \
-        .withColumnRenamed('_c3', 'review_body')
+    # logging.warning(df.columns)
+    df = df.select(['_c0', '_c2', '_c3', '_c4']) \
+        .withColumnRenamed('_c0', 'customer_id') \
+        .withColumnRenamed('_c2', 'product_id') \
+        .withColumnRenamed('_c3', 'star_rating') \
+        .withColumnRenamed('_c4', 'review_body')
     # convert to rdd
     rdd = df.rdd
     # choose a product
-    selected_rdd = rdd.filter(lambda x: 'B00006J6VG' == x['product_id']).sample(withReplacement=False,
+    selected_rdd = rdd.filter(lambda x: selected_product == x['product_id']).sample(withReplacement=False,
                                                                                 fraction=0.1).cache()
 
     # Computing average cosine distance for positive products

@@ -1,5 +1,4 @@
 sudo yum -y install git
-sudo pip-3.6 install --quiet tensorflow
 sudo pip-3.6 install --quiet tensorflow-hub
 sudo pip-3.6 install --quiet numpy
 sudo pip-3.6 install --quiet jupyter 
